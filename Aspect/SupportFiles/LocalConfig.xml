@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LocalConfig>
+	<Eftpos>
+		<!-- Supported modes: Disabled, SiTef, DPS, PcEftpos -->
+		<Mode>PcEftpos</Mode>
+		<PcEftpos>
+			<IpAddress>127.0.0.1</IpAddress>
+			<ServerPort>9000</ServerPort>
+		</PcEftpos>
+	</Eftpos>
+</LocalConfig>
