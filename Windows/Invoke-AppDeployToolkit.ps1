@@ -165,11 +165,18 @@ function Install-ADTDeployment
 
     ## <Perform Installation tasks here>
 
-    #System variables
+    Start-Transcript -Path "$envUserDesktop\psadt.log"
+
+    #Ticketek logging
+    #New-EventLog -LogName "Ticketek" -Source "TicketekScripts"
+    #EntryTypes should be Error/Information/FailureAudit/SuccessAudit/Warning with corresponding EventIDs 1-5
+    #Write-EventLog -LogName "Ticketek" -Source "TicketekScripts" -EventId 3 -EntryType FailureAudit -Message "UWF overlay failed to resize to $size"
+
+    #Ticketek variables
     $assetTag = Show-ADTInstallationPrompt -RequestInput -Message 'Enter asset tag: ' -ButtonRightText 'Submit'
-    $topsNum = ''
-    $sellerCode = ''
-    $venueCode = ''
+    $topsNum = Show-ADTInstallationPrompt -RequestInput -Message 'Enter Tops#: ' -ButtonRightText 'Submit'
+    $sellerCode = Show-ADTInstallationPrompt -RequestInput -Message 'Enter seller code: ' -ButtonRightText 'Submit'
+    $venueCode = Show-ADTInstallationPrompt -RequestInput -Message 'Enter venue code: ' -ButtonRightText 'Submit'
     Rename-Computer -NewName "TCW11${venueCode}-${assetTag}"
     [Environment]::SetEnvironmentVariable('TEG_ASSET_TAG', $AssetTag, 'Machine')
     [Environment]::SetEnvironmentVariable('TEG_TOPS_NUM', $TopsNum, 'Machine')
@@ -186,11 +193,58 @@ function Install-ADTDeployment
         Set-ADTRegistryKey -SID $_.SID -LiteralPath 'HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' -Name 'SystemUsesLightTheme' -Value 0 -Type DWord
         Set-ADTRegistryKey -SID $_.SID -LiteralPath 'HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' -Name 'EnableTransparency' -Value 0 -Type DWord
     }
-    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\CloudContent' -Name 'DisableWindowsConsumerFeatures' -Value 1 -Type DWord
-    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\CloudContent' -Name 'DisableCloudOptimizedContent' -Value 1 -Type DWord
-    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsCopilot' -Name 'TurnOffWindowsCopilot' -Value 1 -Type DWord
-    
 
+    #Fix Microsoft shite
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Dsh' -Name 'AllowNewsAndInterests' -Value 0 -Type DWord
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Dsh' -Name 'DisableWidgetsBoard' -Value 1 -Type DWord
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Dsh' -Name 'DisableWidgetsOnLockScreen' -Value 1 -Type DWord
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\AdvertisingInfo' -Name 'DisabledByGroupPolicy' -Value 1 -Type DWord
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\CloudContent' -Name 'DisableWindowsConsumerFeatures' -Value 1 -Type DWord
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\CloudContent' -Name 'DisableSoftLanding' -Value 1 -Type DWord #Disable windows tips
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\CloudContent' -Name 'DisableCloudOptimizedContent' -Value 1 -Type DWord
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\CloudContent' -Name 'DisableConsumerAccountStateContent' -Value 1 -Type DWord
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\DataCollection' -Name 'AllowTelemetry' -Value 0 -Type DWord
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\MicrosoftAccount' -Name 'DisableUserAuth' -Value 0 -Type DWord #Microsoft block OFF for Marriner Group
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsAI' -Name 'AllowRecallEnablement' -Value 0 -Type DWord
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsAI' -Name 'DisableAIDataAnalysis' -Value 1 -Type DWord
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsAI' -Name 'DisableClickToDo' -Value 1 -Type DWord
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsAI' -Name 'DisableSettingsAgent' -Value 1 -Type DWord
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsAI' -Name 'RemoveMicrosoftCopilotApp' -Value 1 -Type DWord
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsCopilot' -Name 'TurnOffWindowsCopilot' -Value 1 -Type DWord
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\Windows Search' -Name 'AllowCortana' -Value 0 -Type DWord
+
+    #Optimise
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\DeliveryOptimization' -Name 'DODownloadMode' -Value 3 -Type DWord #Delivery Optimisation ON
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'AllowStorageSenseGlobal' -Value 1 -Type DWord
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'ConfigStorageSenseGlobalCadence' -Value 7 -Type DWord #weekly
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'AllowStorageSenseTemporaryFilesCleanup' -Value 1 -Type DWord
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'ConfigStorageSenseDownloadsCleanupThreshold' -Value '5a' -Type DWord #60 days
+    Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'ConfigStorageSenseRecycleBinCleanupThreshold' -Value '0e' -Type DWord #14 days
+
+    #Write filter setup for Dell
+    function Set-OverlaySize([UInt32] $size) {
+        $overlay = Get-WmiObject -Namespace "root\standardcimv2\embedded" -Class UWF_OverlayConfig -Filter "CurrentSession = False"
+        try {
+            $overlay.SetMaximumSize($size)
+        } catch {
+            Write-Error -Message "Overlay size change error" -Category NotSpecified
+        }
+    }
+    function Set-OverlayThreshold([UInt32] $warning, [UInt32] $critical) {
+        $overlay = Get-WmiObject -Namespace "root\standardcimv2\embedded" -Class UWF_Overlay
+        $overlay.SetWarningThreshold($warning)
+        $overlay.SetCriticalThreshold($critical)
+    }
+    function Set-ExcludedFile($driveLetter, $exclusion) {
+        $exclusions = Get-WmiObject -Namespace "root\standardcimv2\embedded" -Class UWF_Volume | where { $_.DriveLetter -eq $driveLetter -and  $_.CurrentSession -eq $false }
+        $exclusions.AddExclusion($exclusion)
+    }
+    #Set-OverlayThresholds(2048, 1024)
+    #Set-OverlaySize(8192)
+    #Set-ExcludedFile("C:", "C:\PC_EFT")
+    #Set-ExcludedFile("C:", "C:\Program Files (x86)\PC_EFT")
+
+    Read-Host
 
     ##================================================
     ## MARK: Post-Install
