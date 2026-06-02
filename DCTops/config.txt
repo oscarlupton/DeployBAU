@@ -1,0 +1,5 @@
+;!@Install@!UTF-8!
+Title="Softix-DCTops"
+RunProgram="Invoke-AppDeployToolkit.exe"
+GUIMode="2"
+;!@InstallEnd@!
