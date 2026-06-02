@@ -166,13 +166,11 @@ function Install-ADTDeployment
     }
 
     ## <Perform Installation tasks here>
-    Write-Host "Run `DCTopsSetupV1.0.0.4.exe` here" #or recreate installer natively
+    #Write-Host "Run `DCTopsSetupV1.0.0.4.exe` here" or recreate installer natively
     # this would look like:
-    Copy-ADTFile -Path "$($adtSession.DirFiles)\README.txt"
+    Copy-ADTFile -Path "$($adtSession.DirFiles)\README.txt" -Destination "$($envProgramFiles)\Softix\DCTops\README.txt"
 
-    Rewrite `installservice.bat` functionality
     #Replace `regedit vb6controls.reg`
-    
     $VB6Licenses = @{
         "BC96F860-9928-11cf-8AFA-00AA00C00905" = "mmimfflflmqmlfffrlnmofhfkgrlmmfmqkqj" #Masked Edit Control 6.0
         "12B142A4-BD51-11d1-8C08-0000F8754DA1" = "aadhgafabafajhchnbchehfambfbbachmfmb" #Chart Control 6.0 (OLEDB)
@@ -210,14 +208,18 @@ function Install-ADTDeployment
         Set-ADTRegistryKey -LiteralPath $RegistryPath -Name "(Default)" -Value $LicenseKey -Type 'String' -Wow6432Node
     }
 
-    #Several DLLs that are part of `DCTOPService.exe` have been omitted
+    #Several DLLs are already part of `DCTOPService.exe`, confirmed by decompiling. Copying anyway to be sure.
+    Copy-ADTFile -Path "$($adtSession.DirFiles)\DCTopsRemoteInterface.dll" -Destination "$($envProgramFiles)\Softix\DCTops\DCTopsRemoteInterface.dll"
+    Copy-ADTFile -Path "$($adtSession.DirFiles)\Interop.MSCommLib.dll" -Destination "$($envProgramFiles)\Softix\DCTops\Interop.MSCommLib.dll"
+    Copy-ADTFile -Path "$($adtSession.DirFiles)\Microsoft.ApplicationBlocks.ExceptionManagement.dll" -Destination "$($envProgramFiles)\Softix\DCTops\Microsoft.ApplicationBlocks.ExceptionManagement.dll"
+    Copy-ADTFile -Path "$($adtSession.DirFiles)\Microsoft.ApplicationBlocks.ExceptionManagement.Interfaces.dll" -Destination "$($envProgramFiles)\Softix\DCTops\Microsoft.ApplicationBlocks.ExceptionManagement.Interfaces.dll"
 
     #Replace `regsvr32 mscomm32.ocx`
     Copy-ADTFile -Path "$($adtSession.DirFiles)\MSCOMM32.OCX" -Destination "$($envWinDir)\SysWOW64\MSCOMM32.OCX"
     Copy-ADTFile -Path "$($adtSession.DirFiles)\MSCOMM32.DEP" -Destination "$($envWinDir)\SysWOW64\MSCOMM32.DEP"
     Invoke-ADTRegSvr32 -FilePath "$($envWinDir)\SysWOW64\MSCOMM32.OCX" -Action 'Register'
     
-    #Replace `installutil DCTOPService.exe` and `subinacl /service dctopsservice /grant=users=STOP`
+    #Replace `installutil DCTOPService.exe` and `subinacl /service dctopsservice /grant=users=STOP` (fixdctops.bat)
     #Checked against DCTOPService.exe\DCTOPS\ProjectInstaller.cs and Acronis HKLM\SYSTEM\ControlSet001\Services\DCTopsService
     #https://serverfault.com/questions/187302/how-do-i-grant-start-stop-restart-permissions-on-a-service-to-an-arbitrary-user
     #https://stackoverflow.com/questions/4436558
@@ -227,8 +229,29 @@ function Install-ADTDeployment
     New-Service -Name "DCTopsService" -BinaryPathName '"C:\Program Files\Softix\DCTops\DCTOPService.exe"' `
         -DisplayName "DCTops Printer Wrapper" -StartupType "Automatic" -SecurityDescriptorSddl $SDDL
     
-    Copy-ADTFile -Path "$($adtSession.DirFiles)\DCTopsConfigs.xml" -Destination "$($envProgramFiles)\Softix\DCTops\DCTopsConfigs.xml"
-    $topsConfig = ""
+    # Dynamically create DCTopsConfigs.xml
+    $printerNumber = [Environment]::GetEnvironmentVariable('TEG_TOPS_NUM')
+    $siteCode = [Environment]::GetEnvironmentVariable('TEG_SITE_CODE')
+    $topsConfig = [System.Xml.Linq.XDocument]::new(
+        [System.Xml.Linq.XDeclaration]::new("1.0", "utf-8", $null),
+        [System.Xml.Linq.XElement]::new("dctops.config",
+            [System.Xml.Linq.XElement]::new("global",
+                [System.Xml.Linq.XElement]::new("timetoreconnect", "2"),
+                [System.Xml.Linq.XElement]::new("maxbuffersize", "2097152")
+            ),
+            [System.Xml.Linq.XElement]::new("settings",
+                [System.Xml.Linq.XElement]::new("printernumber", $printerNumber),
+                [System.Xml.Linq.XElement]::new("tixsyssitecode", $siteCode),
+                [System.Xml.Linq.XElement]::new("tixsysaddress", "active-1.ticketek.com.au"),
+                [System.Xml.Linq.XElement]::new("topsdcportnumber", "11152"),
+                [System.Xml.Linq.XElement]::new("tops2portnumber", "11150"),
+                [System.Xml.Linq.XElement]::new("printercomportnumber", "1"),
+                [System.Xml.Linq.XElement]::new("printercomsettings", "9600,n,8,1"),
+                [System.Xml.Linq.XElement]::new("printerhandshaking", "XOnXOff")
+            )
+        )
+    )
+    $topsConfig.ToString | Out-File "$($envProgramFiles)\Softix\DCTops\DCTopsConfigs.xml"
 
     ##================================================
     ## MARK: Post-Install
