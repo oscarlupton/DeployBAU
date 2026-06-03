@@ -244,8 +244,6 @@ function Install-ADTDeployment
     #Set-ExcludedFile("C:", "C:\PC_EFT")
     #Set-ExcludedFile("C:", "C:\Program Files (x86)\PC_EFT")
 
-    Read-Host
-
     ##================================================
     ## MARK: Post-Install
     ##================================================
