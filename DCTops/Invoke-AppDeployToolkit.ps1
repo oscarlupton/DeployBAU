@@ -163,8 +163,6 @@ function Install-ADTDeployment
     }
 
     ## <Perform Installation tasks here>
-    #Write-Host "Run `DCTopsSetupV1.0.0.4.exe` here" or recreate installer natively
-    # this would look like:
 
     #Replace `regedit vb6controls.reg`
     $VB6Licenses = @{
@@ -222,11 +220,11 @@ function Install-ADTDeployment
     Install-WindowsFeature -FeatureName "NetFx3" -source "$($adtSession.DirFiles)" -LimitAccess
     Copy-ADTFile -Path "$($adtSession.DirFiles)\DCTOPService.exe" -Destination "$($envProgramFiles)\Softix\DCTops\DCTOPService.exe"
     Copy-ADTFile -Path "$($adtSession.DirFiles)\DCTOPService.exe.config" -Destination "$($envProgramFiles)\Softix\DCTOPService.exe.config"
+    Copy-ADTFile -Path "$($adtSession.DirFiles)\DCTopsConfig.xml" -Destination "$($envProgramFiles)\Softix\DCTops\DCTopsConfig.xml"
+    
     $SDDL = "D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOSDRCWDWO;;;BA)(A;;CCDCLCSWRPWPDTLOSDRCWDWO;;;AU)"
     New-Service -Name "DCTopsService" -BinaryPathName '"C:\Program Files\Softix\DCTops\DCTOPService.exe"' -DisplayName "DCTops Printer Wrapper" -StartupType "Automatic"
     sc.exe sdset "DCTopsService" $SDDL
-    
-    Copy-ADTFile -Path "$($adtSession.DirFiles)\DCTopsConfig.xml" -Destination "$($envProgramFiles)\Softix\DCTops\DCTopsConfig.xml"
 
     ##================================================
     ## MARK: Post-Install
@@ -236,8 +234,7 @@ function Install-ADTDeployment
     ## <Perform Post-Installation tasks here>
 
     #Replace `startservice.bat` and `stopservice.bat`
-    New-ADTShortcut -LiteralPath "$envCommonDesktop\TopsRestart.lnk" -Description "Restart Tops" -TargetPath "$PSHOME\powershell.exe" `
-        -Arguments "-Command `"Stop-Service -Name `"DCTopsService`"; Start-Service -Name `"DCTopsService`"`""
+    New-ADTShortcut -LiteralPath "$envCommonDesktop\TopsRestart.lnk" -Description "Restart Tops" -TargetPath "$envSystem32Directory\cmd.exe" -Arguments "net stop DCTopsService && net start DCTopsService && pause && exit"
 
     ## Display a message at the end of the install.
     if (!$adtSession.UseDefaultMsi)
