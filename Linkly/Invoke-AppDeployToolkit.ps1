@@ -119,8 +119,6 @@ function Install-ADTDeployment
     )
 
     $linklyInstallDir = "$envProgramFilesX86\PC_EFT"
-    $linklyClientReg = "HKLM:\SOFTWARE\Wow6432Node\CullenSoftwareDesign\EFTCLIENT\CLIENT"
-	$linklyRegistry = "HKLM:\SOFTWARE\WOW6432Node\CullenSoftwareDesign"
     # Linkly uses Inno Setup 6.0 as of writing. Install args/switches as follows:
     #   - ems_client_service        - EMS Monitoring Service
     #   - ingenico_usb_drivers      - Ingenico Telium USBCOM RNDIS driver (for Move/5000)
@@ -158,9 +156,9 @@ function Install-ADTDeployment
         Start-ADTProcess -FilePath "$($adtSession.DirFiles)\NoConfig_LinklySetup.exe" -ArgumentList $linklyInstallArgs
     }
     # Aspect connects over port 9000. Registry keys provided by Linkly support
-	Set-ADTRegistryKey -LiteralPath '$linklyRegistry\EFTCLIENT\CLIENT' -Name 'IP_INTERFACE_SOCKET_REJECT' -Value 1 -Type 'DWord'
-    Set-ADTRegistryKey -LiteralPath '$linklyRegistry\EFTCLIENT\CLIENT' -Name 'IP_INTERFACE_PORT' -Value 9000 -Type 'DWord'
-	Set-ADTRegistryKey -LiteralPath '$linklyRegistry\EFTCLIENT\PINPAD' -Name 'PORT' -Value "COM3" -Type String
+	Set-ADTRegistryKey -LiteralPath 'HKLM\SOFTWARE\Wow6432Node\CullenSoftwareDesign\EFTCLIENT\CLIENT' -Name 'IP_INTERFACE_SOCKET_REJECT' -Value 1 -Type 'DWord'
+    Set-ADTRegistryKey -LiteralPath 'HKLM\SOFTWARE\Wow6432Node\CullenSoftwareDesign\EFTCLIENT\CLIENT' -Name 'IP_INTERFACE_PORT' -Value 9000 -Type 'DWord'
+	Set-ADTRegistryKey -LiteralPath 'HKLM\SOFTWARE\Wow6432Node\CullenSoftwareDesign\EFTCLIENT\PINPAD' -Name 'PORT' -Value "COM3" -Type String
 
     ##================================================
     ## MARK: Post-Install
