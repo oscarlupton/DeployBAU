@@ -217,11 +217,11 @@ function Install-ADTDeployment
     #Checked against DCTOPService.exe\DCTOPS\ProjectInstaller.cs and Acronis HKLM\SYSTEM\ControlSet001\Services\DCTopsService
     #https://serverfault.com/questions/187302/how-do-i-grant-start-stop-restart-permissions-on-a-service-to-an-arbitrary-user
     #https://stackoverflow.com/questions/4436558
-    Install-WindowsFeature -FeatureName "NetFx3" -source "$($adtSession.DirFiles)" -LimitAccess
+    Install-WindowsFeature -FeatureName "NetFx3" -source "$($adtSession.DirFiles)"
     Copy-ADTFile -Path "$($adtSession.DirFiles)\DCTOPService.exe" -Destination "$($envProgramFiles)\Softix\DCTops\DCTOPService.exe"
     Copy-ADTFile -Path "$($adtSession.DirFiles)\DCTOPService.exe.config" -Destination "$($envProgramFiles)\Softix\DCTOPService.exe.config"
     Copy-ADTFile -Path "$($adtSession.DirFiles)\DCTopsConfig.xml" -Destination "$($envProgramFiles)\Softix\DCTops\DCTopsConfig.xml"
-    
+
     $SDDL = "D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOSDRCWDWO;;;BA)(A;;CCDCLCSWRPWPDTLOSDRCWDWO;;;AU)"
     New-Service -Name "DCTopsService" -BinaryPathName '"C:\Program Files\Softix\DCTops\DCTOPService.exe"' -DisplayName "DCTops Printer Wrapper" -StartupType "Automatic"
     sc.exe sdset "DCTopsService" $SDDL
