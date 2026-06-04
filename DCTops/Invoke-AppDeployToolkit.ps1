@@ -55,9 +55,6 @@ Toolkit Exit Code Ranges:
 https://psappdeploytoolkit.com
 
 #>
-
-using namespace System.Xml.Linq #for config file creation
-
 [CmdletBinding()]
 param
 (
@@ -168,7 +165,6 @@ function Install-ADTDeployment
     ## <Perform Installation tasks here>
     #Write-Host "Run `DCTopsSetupV1.0.0.4.exe` here" or recreate installer natively
     # this would look like:
-    Copy-ADTFile -Path "$($adtSession.DirFiles)\README.txt" -Destination "$($envProgramFiles)\Softix\DCTops\README.txt"
 
     #Replace `regedit vb6controls.reg`
     $VB6Licenses = @{
@@ -223,35 +219,14 @@ function Install-ADTDeployment
     #Checked against DCTOPService.exe\DCTOPS\ProjectInstaller.cs and Acronis HKLM\SYSTEM\ControlSet001\Services\DCTopsService
     #https://serverfault.com/questions/187302/how-do-i-grant-start-stop-restart-permissions-on-a-service-to-an-arbitrary-user
     #https://stackoverflow.com/questions/4436558
+    Install-WindowsFeature -FeatureName "NetFx3" -source "$($adtSession.DirFiles)" -LimitAccess
     Copy-ADTFile -Path "$($adtSession.DirFiles)\DCTOPService.exe" -Destination "$($envProgramFiles)\Softix\DCTops\DCTOPService.exe"
     Copy-ADTFile -Path "$($adtSession.DirFiles)\DCTOPService.exe.config" -Destination "$($envProgramFiles)\Softix\DCTOPService.exe.config"
-    $SDDL = "D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOSDRCWDWO;;;BA)(A;;CCLCSWRPWPDTLOCRRC;;;AU)"
-    New-Service -Name "DCTopsService" -BinaryPathName '"C:\Program Files\Softix\DCTops\DCTOPService.exe"' `
-        -DisplayName "DCTops Printer Wrapper" -StartupType "Automatic" -SecurityDescriptorSddl $SDDL
+    $SDDL = "D:(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOSDRCWDWO;;;BA)(A;;CCDCLCSWRPWPDTLOSDRCWDWO;;;AU)"
+    New-Service -Name "DCTopsService" -BinaryPathName '"C:\Program Files\Softix\DCTops\DCTOPService.exe"' -DisplayName "DCTops Printer Wrapper" -StartupType "Automatic"
+    sc.exe sdset "DCTopsService" $SDDL
     
-    # Dynamically create DCTopsConfigs.xml
-    $printerNumber = [Environment]::GetEnvironmentVariable('TEG_TOPS_NUM')
-    $siteCode = [Environment]::GetEnvironmentVariable('TEG_SITE_CODE')
-    $topsConfig = [System.Xml.Linq.XDocument]::new(
-        [System.Xml.Linq.XDeclaration]::new("1.0", "utf-8", $null),
-        [System.Xml.Linq.XElement]::new("dctops.config",
-            [System.Xml.Linq.XElement]::new("global",
-                [System.Xml.Linq.XElement]::new("timetoreconnect", "2"),
-                [System.Xml.Linq.XElement]::new("maxbuffersize", "2097152")
-            ),
-            [System.Xml.Linq.XElement]::new("settings",
-                [System.Xml.Linq.XElement]::new("printernumber", $printerNumber),
-                [System.Xml.Linq.XElement]::new("tixsyssitecode", $siteCode),
-                [System.Xml.Linq.XElement]::new("tixsysaddress", "active-1.ticketek.com.au"),
-                [System.Xml.Linq.XElement]::new("topsdcportnumber", "11152"),
-                [System.Xml.Linq.XElement]::new("tops2portnumber", "11150"),
-                [System.Xml.Linq.XElement]::new("printercomportnumber", "1"),
-                [System.Xml.Linq.XElement]::new("printercomsettings", "9600,n,8,1"),
-                [System.Xml.Linq.XElement]::new("printerhandshaking", "XOnXOff")
-            )
-        )
-    )
-    $topsConfig.ToString | Out-File "$($envProgramFiles)\Softix\DCTops\DCTopsConfigs.xml"
+    Copy-ADTFile -Path "$($adtSession.DirFiles)\DCTopsConfig.xml" -Destination "$($envProgramFiles)\Softix\DCTops\DCTopsConfig.xml"
 
     ##================================================
     ## MARK: Post-Install

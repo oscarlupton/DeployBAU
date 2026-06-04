@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<!--
+Note: 
+
+printerhanshaking mode:
+    * None
+    * RTS
+    * RTSXOnXOff
+    * XOnXOff
+-->
+
+<dctops.config>
+	<global>
+		<timetoreconnect>2</timetoreconnect>
+		<maxbuffersize>2097152</maxbuffersize>
+	</global>
+	<settings>
+		<printernumber>959</printernumber>		
+		<tixsyssitecode>PRI</tixsyssitecode>
+		<tixsysaddress>active-1.ticketek.com.au</tixsysaddress>
+		<topsdcportnumber>11152</topsdcportnumber>
+		<tops2portnumber>11150</tops2portnumber>				
+		<printercomportnumber>1</printercomportnumber>
+		<printercomsettings>9600,n,8,1</printercomsettings>
+		<printerhandshaking>XOnXOff</printerhandshaking>
+	</settings>
+</dctops.config>
