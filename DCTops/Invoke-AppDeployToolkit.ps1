@@ -164,7 +164,7 @@ function Install-ADTDeployment
 
     ## <Perform Installation tasks here>
 
-    #Replace `regedit vb6controls.reg`
+    # All VB6 licenses from old `vb6controls.reg`.
     $VB6Licenses = @{
         "BC96F860-9928-11cf-8AFA-00AA00C00905" = "mmimfflflmqmlfffrlnmofhfkgrlmmfmqkqj" #Masked Edit Control 6.0
         "12B142A4-BD51-11d1-8C08-0000F8754DA1" = "aadhgafabafajhchnbchehfambfbbachmfmb" #Chart Control 6.0 (OLEDB)
@@ -196,13 +196,14 @@ function Install-ADTDeployment
         "E32E2733-1BC5-11d0-B8C3-00A0C90DCA10" = "kmhfimlflmmfpffmsgfmhmimngtghmoflhsg" #SysInfo Control 6.0
         "2c49f800-c2dd-11cf-9ad6-0080c7e7b78d" = "mlrljgrlhltlngjlthrligklpkrhllglqlrk" #Winsock Control 6.0
     }
+    # Add registry keys to HKLM.
     foreach ( $Guid in $VB6Licenses.Keys ) {
         $LicenseKey     = $VB6Licenses[$Guid]
         $RegistryPath   = "HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Licenses\$Guid"
         Set-ADTRegistryKey -LiteralPath $RegistryPath -Name "(Default)" -Value $LicenseKey -Type 'String' -Wow6432Node
     }
-
-    #Several DLLs are already part of `DCTOPService.exe`, confirmed by decompiling. Copying anyway to be sure.
+    
+    # These DLLs are already compiled into `DCTOPService.exe`, but copying in case required elsewhere.
     Copy-ADTFile -Path "$($adtSession.DirFiles)\DCTopsRemoteInterface.dll" -Destination "$($envProgramFiles)\Softix\DCTops\DCTopsRemoteInterface.dll"
     Copy-ADTFile -Path "$($adtSession.DirFiles)\Interop.MSCommLib.dll" -Destination "$($envProgramFiles)\Softix\DCTops\Interop.MSCommLib.dll"
     Copy-ADTFile -Path "$($adtSession.DirFiles)\Microsoft.ApplicationBlocks.ExceptionManagement.dll" -Destination "$($envProgramFiles)\Softix\DCTops\Microsoft.ApplicationBlocks.ExceptionManagement.dll"

@@ -236,7 +236,7 @@ function Install-ADTDeployment
         $overlay.SetCriticalThreshold($critical)
     }
     function Set-ExcludedFile($driveLetter, $exclusion) {
-        $exclusions = Get-WmiObject -Namespace "root\standardcimv2\embedded" -Class UWF_Volume | where { $_.DriveLetter -eq $driveLetter -and  $_.CurrentSession -eq $false }
+        $exclusions = Get-WmiObject -Namespace "root\standardcimv2\embedded" -Class UWF_Volume | Where-Object { $_.DriveLetter -eq $driveLetter -and  $_.CurrentSession -eq $false }
         $exclusions.AddExclusion($exclusion)
     }
     #Set-OverlayThresholds(2048, 1024)
@@ -351,7 +351,6 @@ function Repair-ADTDeployment
     }
 
     ## <Perform Repair tasks here>
-
 
     ##================================================
     ## MARK: Post-Repair
