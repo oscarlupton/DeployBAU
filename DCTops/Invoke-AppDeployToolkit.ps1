@@ -235,7 +235,7 @@ function Install-ADTDeployment
     ## <Perform Post-Installation tasks here>
 
     #Replace `startservice.bat` and `stopservice.bat`
-    New-ADTShortcut -LiteralPath "$envCommonDesktop\TopsRestart.lnk" -Description "Restart Tops" -TargetPath "$envSystem32Directory\cmd.exe" -Arguments "net stop DCTopsService && net start DCTopsService && pause && exit"
+    New-ADTShortcut -LiteralPath "$envCommonDesktop\TopsRestart.lnk" -Description "Restart Tops" -TargetPath "$envSystem32Directory\cmd.exe" -Arguments "net stop DCTopsService && net start DCTopsService"
 
     ## Display a message at the end of the install.
     if (!$adtSession.UseDefaultMsi)
