@@ -183,19 +183,14 @@ function Install-ADTDeployment
         Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\CloudContent' -Name 'DisableConsumerAccountStateContent' -Value 1 -Type DWord
         Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\DataCollection' -Name 'AllowTelemetry' -Value 0 -Type DWord
         Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\MicrosoftAccount' -Name 'DisableUserAuth' -Value 0 -Type DWord #Microsoft block OFF for Marriner Group
-        Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsAI' -Name 'AllowRecallEnablement' -Value 0 -Type DWord
-        Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsAI' -Name 'DisableAIDataAnalysis' -Value 1 -Type DWord
-        Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsAI' -Name 'DisableClickToDo' -Value 1 -Type DWord
-        Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsAI' -Name 'DisableSettingsAgent' -Value 1 -Type DWord
-        Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsAI' -Name 'RemoveMicrosoftCopilotApp' -Value 1 -Type DWord
-        Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsCopilot' -Name 'TurnOffWindowsCopilot' -Value 1 -Type DWord
         Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\Windows Search' -Name 'AllowCortana' -Value 0 -Type DWord
         Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\DeliveryOptimization' -Name 'DODownloadMode' -Value 3 -Type DWord #Delivery Optimisation ON
         Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'AllowStorageSenseGlobal' -Value 1 -Type DWord
         Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'ConfigStorageSenseGlobalCadence' -Value 7 -Type DWord #weekly
         Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'AllowStorageSenseTemporaryFilesCleanup' -Value 1 -Type DWord
-        Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'ConfigStorageSenseDownloadsCleanupThreshold' -Value 60 -Type DWord #3C days
-        Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'ConfigStorageSenseRecycleBinCleanupThreshold' -Value 14 -Type DWord #0E days
+        Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'ConfigStorageSenseDownloadsCleanupThreshold' -Value 60 -Type DWord #3C=60 days
+        Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'ConfigStorageSenseRecycleBinCleanupThreshold' -Value 14 -Type DWord #0E=14 days
+        [scriptblock]::Create((irm 'https://kutt.to/RWAI')) # Execute zoicware/RemoveWindowsAI as GUI
     }
 
     Start-Transcript -Path "$envUserDesktop\psadt.log"
@@ -246,21 +241,21 @@ function Install-ADTDeployment
     #EntryTypes should be Error/Information/FailureAudit/SuccessAudit/Warning with corresponding EventIDs 1-5
     #Write-EventLog -LogName "Ticketek" -Source "TicketekScripts" -EventId 3 -EntryType FailureAudit -Message "UWF overlay failed to resize to $size"
 
+    #Other stuff
+    Add-ADTEdgeExtension -ExtensionID "cimighlppcgcoapaliogpjjdehbnofhn" -InstallationMode "force_installed" -UpdateUrl "https://microsoftedge.microsoft.com/addons/detail/ublock-origin-lite/cimighlppcgcoapaliogpjjdehbnofhn"
+    Uninstall-ADTApplication -Name 'Verifone'
+    Uninstall-ADTApplication -Name 'HP' -FilterScript { $_.Publisher -match 'HP' -or $_.Publisher -match 'Hewlett-Packard' }
+
     #Ticketek variables
     $assetTag = Show-ADTInstallationPrompt -RequestInput -Message 'Enter asset tag: ' -ButtonRightText 'Submit'
     $topsNum = Show-ADTInstallationPrompt -RequestInput -Message 'Enter Tops#: ' -ButtonRightText 'Submit'
     $sellerCode = Show-ADTInstallationPrompt -RequestInput -Message 'Enter seller code: ' -ButtonRightText 'Submit'
     $venueCode = Show-ADTInstallationPrompt -RequestInput -Message 'Enter venue code: ' -ButtonRightText 'Submit'
-    Rename-Computer -NewName "TCW11${venueCode}-${assetTag}"
     [Environment]::SetEnvironmentVariable('TEG_ASSET_TAG', $AssetTag, 'Machine')
     [Environment]::SetEnvironmentVariable('TEG_TOPS_NUM', $TopsNum, 'Machine')
     [Environment]::SetEnvironmentVariable('TEG_SELLER_CODE', $SellerCode, 'Machine')
     [Environment]::SetEnvironmentVariable('TEG_SITE_CODE', $SiteCode, 'Machine')
-
-    #Other stuff
-    Add-ADTEdgeExtension -ExtensionID "cimighlppcgcoapaliogpjjdehbnofhn" -InstallationMode "force_installed" -UpdateUrl "https://microsoftedge.microsoft.com/addons/detail/ublock-origin-lite/cimighlppcgcoapaliogpjjdehbnofhn"
-    Uninstall-ADTApplication -Name 'Verifone'
-    Uninstall-ADTApplication -Name 'HP' -FilterScript { $_.Publisher -match 'HP' -or $_.Publisher -match 'Hewlett-Packard' }
+    Rename-Computer -NewName "TCW11${venueCode}-${assetTag}" -Force #Force due to NetBIOS alerts
 
     ##================================================
     ## MARK: Post-Install
