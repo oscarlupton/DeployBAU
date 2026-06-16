@@ -194,8 +194,8 @@ function Install-ADTDeployment
         Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'AllowStorageSenseGlobal' -Value 1 -Type DWord
         Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'ConfigStorageSenseGlobalCadence' -Value 7 -Type DWord #weekly
         Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'AllowStorageSenseTemporaryFilesCleanup' -Value 1 -Type DWord
-        Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'ConfigStorageSenseDownloadsCleanupThreshold' -Value '5a' -Type DWord #60 days
-        Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'ConfigStorageSenseRecycleBinCleanupThreshold' -Value '0e' -Type DWord #14 days
+        Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'ConfigStorageSenseDownloadsCleanupThreshold' -Value 60 -Type DWord #3C days
+        Set-ADTRegistryKey -LiteralPath 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\StorageSense' -Name 'ConfigStorageSenseRecycleBinCleanupThreshold' -Value 14 -Type DWord #0E days
     }
 
     Start-Transcript -Path "$envUserDesktop\psadt.log"
