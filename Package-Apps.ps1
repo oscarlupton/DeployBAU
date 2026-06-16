@@ -1,4 +1,4 @@
-$appList = 'Aspect', 'CRT', 'DCTops', 'Linkly'
+$appList = 'Aspect', 'CRT', 'DCTops', 'Linkly', 'Windows'
 Set-Alias Start-7Zip ".\7z\7zr.exe"
 
 foreach ($app in $appList) {
