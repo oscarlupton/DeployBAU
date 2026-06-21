@@ -196,8 +196,7 @@ function Install-ADTDeployment
     Start-Transcript -Path "$envUserDesktop\psadt.log"
 
     $groupPolicyChoice = Show-ADTInstallationPrompt -Message 'Apply group policy performance and privacy settings?' -ButtonLeftText Yes -ButtonRightText No
-    switch ( $groupPolicyChoice )
-    {
+    switch ( $groupPolicyChoice ) {
         Yes {
             Set-GroupPolicyOptimisations
         }
@@ -206,8 +205,7 @@ function Install-ADTDeployment
         }
     }
     $writeFilterChoice = Show-ADTInstallationPrompt -Message 'Configure UWF?' -ButtonLeftText Yes -ButtonRightText No
-    switch ( $writeFilterChoice )
-    {
+    switch ( $writeFilterChoice ) {
         Yes {
             function Set-OverlaySize([UInt32] $size) {
                 $overlay = Get-WmiObject -Namespace "root\standardcimv2\embedded" -Class UWF_OverlayConfig -Filter "CurrentSession = False"
@@ -235,18 +233,20 @@ function Install-ADTDeployment
             continue
         }
     }
+    $unInstallChoice = Show-ADTInstallationPrompt -Message 'Remove unwanted programs, and add uB+?' -ButtonLeftText Yes -ButtonRightText No
+    switch ( $unInstallChoice ) {
+        Yes {
+            Uninstall-ADTApplication -Name 'Verifone' #Old driver incompatible with Windows Memory Integrity
+            Uninstall-ADTApplication -Name 'HP' -FilterScript { $_.Publisher -match 'HP' -or $_.Publisher -match 'Hewlett-Packard' } #Remove all vendor shit
+            Uninstall-ADTApplication -Name 'Dell' -FilterScript { $_.Publisher -match 'Dell' -or $_.Publisher -match 'Dell Inc' } #As above !NOTE: removes Dell WDA
+            Add-ADTEdgeExtension -ExtensionID "cimighlppcgcoapaliogpjjdehbnofhn" -InstallationMode "force_installed" -UpdateUrl "https://microsoftedge.microsoft.com/addons/detail/ublock-origin-lite/cimighlppcgcoapaliogpjjdehbnofhn"
+        }
+        No {
+            continue
+        }
+    }
 
-    #Ticketek logging
-    #New-EventLog -LogName "Ticketek" -Source "TicketekScripts"
-    #EntryTypes should be Error/Information/FailureAudit/SuccessAudit/Warning with corresponding EventIDs 1-5
-    #Write-EventLog -LogName "Ticketek" -Source "TicketekScripts" -EventId 3 -EntryType FailureAudit -Message "UWF overlay failed to resize to $size"
-
-    #Other stuff
-    Add-ADTEdgeExtension -ExtensionID "cimighlppcgcoapaliogpjjdehbnofhn" -InstallationMode "force_installed" -UpdateUrl "https://microsoftedge.microsoft.com/addons/detail/ublock-origin-lite/cimighlppcgcoapaliogpjjdehbnofhn"
-    Uninstall-ADTApplication -Name 'Verifone'
-    Uninstall-ADTApplication -Name 'HP' -FilterScript { $_.Publisher -match 'HP' -or $_.Publisher -match 'Hewlett-Packard' }
-
-    #Ticketek variables
+    #TEG variable set
     $assetTag = Show-ADTInstallationPrompt -RequestInput -Message 'Enter asset tag: ' -ButtonRightText 'Submit'
     $topsNum = Show-ADTInstallationPrompt -RequestInput -Message 'Enter Tops#: ' -ButtonRightText 'Submit'
     $sellerCode = Show-ADTInstallationPrompt -RequestInput -Message 'Enter seller code: ' -ButtonRightText 'Submit'
